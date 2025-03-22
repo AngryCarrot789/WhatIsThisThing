@@ -11,7 +11,7 @@ The original file is not mine. Many thanks to NeRdTheNed for creating it: https:
 
 For example, say you have a folder called `ModMaking`, place setup.sh and Witt into that folder, such that these files exist:
 - `ModMaking/setup.sh`
-- `ModMaking/Witt/src/mod_Witt.java`
+- `ModMaking/WhatIsThisThing/src/mod_Witt.java`
 
 Now, actually run `setup.sh`. This should create two folder: `downloads` and `mcp62`.
 
