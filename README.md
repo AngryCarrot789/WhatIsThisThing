@@ -8,7 +8,7 @@ If you've played tekkit classic, you probably know there's no Waila mod to tell 
 At the moment, I only intent to make this for 1.2.5
 
 ## CurseForge link
-https://legacy.curseforge.com/minecraft/mc-addons/whatisthisthing
+https://legacy.curseforge.com/minecraft/mc-mods/whatisthisthing
 
 # Licence
 Licenced under MIT licence
