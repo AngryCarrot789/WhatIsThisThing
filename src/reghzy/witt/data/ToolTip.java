@@ -18,6 +18,24 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Contains all rows and columns to be rendered. The tooltip grid is arranged as such:
+ * <br/><b>HEADER ROW SPANS ENTIRE LENGTH</b>
+ * <br/><b>HEADER ROW SPANS ENTIRE LENGTH</b>
+ *
+ * <table border="1">
+ * <tr><th>  </th><th>  </th><th>CENTRE ROW</th><th>  </th><th>  </th></tr>
+ * <tr><th>LC</th><th>LC</th><th>CENTRE ROW</th><th>RC</th><th>RC</th></tr>
+ * <tr><th>  </th><th>  </th><th>CENTRE ROW</th><th>  </th><th>  </th></tr>
+ * </table>
+ * <br/><b>FOOTER ROW SPANS ENTIRE LENGTH</b>
+ * <br/><b>FOOTER ROW SPANS ENTIRE LENGTH</b>
+ *
+ * <p>
+ *     LC stands for left column, RC stands for right column. Colums span the entire vertical height, Rows span the horizontal width.
+ *     Header and footer rows' X positions start at the same as the left column, whereas centre rows start at the largest width value of any left column
+ * </P>
+ */
 public class ToolTip {
     private final Minecraft mc;
     private ArrayList<TipColumn> columns1;
@@ -35,34 +53,74 @@ public class ToolTip {
     }
 
     public void addRow(TipRow row, RowPlacement placement) {
+        addRow(row, size(placement), placement);
+    }
+
+    public void addRow(TipRow row, int index, RowPlacement placement) {
         switch (placement) {
             case CENTRE:
                 if (this.centreRows == null)
                     this.centreRows = new ArrayList<TipRow>();
-                this.centreRows.add(row);
+                this.centreRows.add(index, row);
                 break;
             case HEADER:
                 if (this.headerRows == null)
                     this.headerRows = new ArrayList<TipRow>();
-                this.headerRows.add(row);
+                this.headerRows.add(index, row);
                 break;
             case FOOTER:
                 if (this.footerRows == null)
                     this.footerRows = new ArrayList<TipRow>();
-                this.footerRows.add(row);
+                this.footerRows.add(index, row);
                 break;
+            default:
+                throw new IllegalStateException("Unexpected value: " + placement);
         }
     }
 
-    public void addColumn(boolean left, TipColumn column) {
-        if ((left ? this.columns1 : this.columns2) == null) {
-            if (left)
-                this.columns1 = new ArrayList<TipColumn>();
-            else
-                this.columns2 = new ArrayList<TipColumn>();
-        }
+    public void addColumn(ColumnPlacement placement, TipColumn column) {
+        addColumn(placement, size(placement), column);
+    }
 
-        (left ? this.columns1 : this.columns2).add(column);
+    public void addColumn(ColumnPlacement placement, int index, TipColumn column) {
+        switch (placement) {
+            case LEFT:
+                if (this.columns1 == null)
+                    this.columns1 = new ArrayList<TipColumn>();
+                this.columns1.add(index, column);
+                break;
+            case RIGHT:
+                if (this.columns2 == null)
+                    this.columns2 = new ArrayList<TipColumn>();
+                this.columns2.add(index, column);
+                break;
+            default:
+                throw new IllegalStateException("Unexpected value: " + placement);
+        }
+    }
+
+    public int size(RowPlacement placement) {
+        switch (placement) {
+            case CENTRE:
+                return this.centreRows != null ? this.centreRows.size() : 0;
+            case HEADER:
+                return this.headerRows != null ? this.headerRows.size() : 0;
+            case FOOTER:
+                return this.footerRows != null ? this.footerRows.size() : 0;
+            default:
+                throw new IllegalArgumentException();
+        }
+    }
+
+    public int size(ColumnPlacement placement) {
+        switch (placement) {
+            case LEFT:
+                return this.columns1 != null ? this.columns1.size() : 0;
+            case RIGHT:
+                return this.columns2 != null ? this.columns2.size() : 0;
+            default:
+                throw new IllegalArgumentException();
+        }
     }
 
     /**
@@ -74,14 +132,12 @@ public class ToolTip {
      * @param screenH Height of the screen
      */
     public void onRender(Minecraft mc, int offX, int offY, int screenW, int screenH) {
-        int totalObjects = 0;
-        int trcW = 0, trcH = 0;
+        int totalCentreRowsW = 0, totalCentreRowsH = 0;
         if (this.centreRows != null) {
             for (TipRow row : this.centreRows) {
                 Point size = row.getSize();
-                trcW = Math.max(trcW, size.getX());
-                trcH += size.getY();
-                totalObjects++;
+                totalCentreRowsW = Math.max(totalCentreRowsW, size.getX());
+                totalCentreRowsH += size.getY();
             }
         }
 
@@ -91,7 +147,6 @@ public class ToolTip {
                 Point size = row.getSize();
                 trhW = Math.max(trhW, size.getX());
                 trhH += size.getY();
-                totalObjects++;
             }
         }
 
@@ -101,35 +156,32 @@ public class ToolTip {
                 Point size = row.getSize();
                 trfW = Math.max(trfW, size.getX());
                 trfH += size.getY();
-                totalObjects++;
             }
         }
 
         int totalCol1W = 0, totalCol1H = 0;
         if (this.columns1 != null) {
-            for (TipColumn row : this.columns1) {
-                Point size = row.getSize();
+            for (TipColumn column : this.columns1) {
+                Point size = column.getSize();
                 totalCol1W += size.getX();
                 totalCol1H = Math.max(totalCol1H, size.getY());
-                totalObjects++;
             }
         }
 
         int totalCol2W = 0, totalCol2H = 0;
         if (this.columns2 != null) {
-            for (TipColumn row : this.columns2) {
-                Point size = row.getSize();
+            for (TipColumn column : this.columns2) {
+                Point size = column.getSize();
                 totalCol2W += size.getX();
                 totalCol2H = Math.max(totalCol2H, size.getY());
-                totalObjects++;
             }
         }
 
         final int padAll = 0;
         final int padL = padAll, padT = padAll, padR = padAll, padB = padAll;
         final int posY = 100;
-        final int totalColH = Math.max(Math.max(totalCol1H, trcH), totalCol2H);
-        final int containerW = Math.max(totalCol1W + trcW + totalCol2W, Math.max(trhW, trfW)) + padL + padR;
+        final int totalColH = Math.max(Math.max(totalCol1H, totalCentreRowsH), totalCol2H);
+        final int containerW = Math.max(totalCol1W + totalCentreRowsW + totalCol2W, Math.max(trhW, trfW)) + padL + padR;
         final int containerH = totalColH + trhH + trfH + padT + padB;
 
         // begin rendering
@@ -150,8 +202,8 @@ public class ToolTip {
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
         GL11.glDisable(GL11.GL_LIGHTING);
         {
-            int w = containerW, h = containerH;
             int px = scrPosX, py = scrPosY;
+            int w = containerW, h = containerH;
             drawGradientRect(px, py - 2, px + w, py, Color.GRAY.getRGB(), Color.GRAY.getRGB());
             drawGradientRect(px, py + h, px + w, py + h + 2, Color.GRAY.getRGB(), Color.GRAY.getRGB());
             drawGradientRect(px - 2, py - 2, px, py + h + 2, Color.GRAY.getRGB(), Color.GRAY.getRGB());
@@ -159,6 +211,7 @@ public class ToolTip {
             drawGradientRect(px, py, px + w, py + h, -1072689136, -804253680);
         }
 
+        GL11.glEnable(GL11.GL_LIGHTING);
         GL11.glTranslatef(scrPosX, scrPosY, 0.0F);
 
         // render columns1, rows, column2
@@ -180,13 +233,13 @@ public class ToolTip {
 
         if (this.centreRows != null) {
             for (TipRow row : this.centreRows) {
-                row.onRender(this, mc, offsetX, offsetY, trcW);
+                row.onRender(this, mc, offsetX, offsetY, totalCentreRowsW);
                 offsetY += row.getSize().getY();
             }
         }
 
+        offsetX += totalCentreRowsW;
         if (this.columns2 != null) {
-            offsetX += totalCol1W + trcW;
             for (TipColumn row : this.columns2) {
                 row.onRender(this, mc, offsetX, padT, totalColH);
                 offsetX += row.getSize().getX();
@@ -203,120 +256,32 @@ public class ToolTip {
         GL11.glPopMatrix();
     }
 
-    private static final int BLOCK_SIZE_PX = 24;
-
-    public static void renderOverlay(ItemStack stack, List<String> lines, Point pos) {
-        Minecraft mc = ModLoader.getMinecraftInstance();
-        final int fixedLineGap = 12;
-        final int textAreaHeight = fixedLineGap * lines.size();
-        final int pad = 5;
-
-        int box_w = 0, box_h = 0;
-        for (int i = 0; i < lines.size(); i++) {
-            box_w = Math.max(box_w, mc.fontRenderer.getStringWidth(lines.get(i)) + BLOCK_SIZE_PX);
-            if (i != 0) {
-                box_h = Math.max(BLOCK_SIZE_PX, box_h + fixedLineGap);
-            }
-        }
-
-        box_w += pad;
-        box_h += pad;
-
-        ScaledResolution vp = new ScaledResolution(mc.gameSettings, mc.displayWidth, mc.displayHeight);
-
-        // int x = ((int) (mc.displayWidth / scale) - w - 1) * pos.x / 10000;
-        int boxX = (vp.getScaledWidth() / 2) - (box_w / 2);
-        int boxY = (vp.getScaledHeight() - box_h - 1) * 50 / 10000 + 5;
-
-
-        GL11.glPushMatrix();
-        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-        GL11.glDisable(GL11.GL_LIGHTING);
-
-        drawGradientRect(boxX, boxY - 2, boxX + box_w, boxY, Color.GRAY.getRGB(), Color.GRAY.getRGB());
-        drawGradientRect(boxX, boxY + box_h, boxX + box_w, boxY + box_h + 2, Color.GRAY.getRGB(), Color.GRAY.getRGB());
-        drawGradientRect(boxX - 2, boxY - 2, boxX, boxY + box_h + 2, Color.GRAY.getRGB(), Color.GRAY.getRGB());
-        drawGradientRect(boxX + box_w, boxY - 2, boxX + box_w + 2, boxY + box_h + 2, Color.GRAY.getRGB(), Color.GRAY.getRGB());
-        drawGradientRect(boxX, boxY, boxX + box_w, boxY + box_h, -1072689136, -804253680);
-
-        GL11.glDisable(32826);
-        GL11.glDisable(GL11.GL_LIGHTING);
-        GL11.glDisable(GL11.GL_DEPTH_TEST);
-
-        GL11.glEnable(GL11.GL_BLEND);
-        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-
-        int oY = (box_h - textAreaHeight) / 2;
-        for (int i = 0; i < lines.size(); i++)
-            mc.fontRenderer.drawString(lines.get(i), boxX + BLOCK_SIZE_PX, oY + boxY + (fixedLineGap * i) + 2, 0xffffff);
-
-        GL11.glDisable(GL11.GL_BLEND);
-        GL11.glEnable(32826);
-
-        RenderHelper.enableGUIStandardItemLighting();
-        if (stack.getItem() != null)
-            drawItem2(boxX + 5, (boxY + (box_h / 2)) - 8, stack, mc);
-
-        GL11.glPopMatrix();
-    }
-
-    private static void drawItem2(int x, int y, ItemStack item, Minecraft mc) {
-        RenderItem render = (RenderItem) RenderManager.instance.getEntityClassRenderObject(EntityItem.class);
-        enable3DRender();
-        render.zLevel = 200.0F;
-        render.renderItemIntoGUI(mc.fontRenderer, mc.renderEngine, item, x, y);
-        render.zLevel = 0.0F;
-        enable2DRender();
-    }
-
-    public static void enable3DRender() {
-        GL11.glEnable(2896);
-        GL11.glEnable(2929);
-    }
-
-    public static void enable2DRender() {
-        GL11.glDisable(2896);
-        GL11.glDisable(2929);
-    }
-
-    protected static void drawGradientRect(int par1, int par2, int par3, int par4, int par5, int par6) {
-        float var7 = (float) ((par5 >> 24) & 255) / 255.0F;
-        float var8 = (float) ((par5 >> 16) & 255) / 255.0F;
-        float var9 = (float) ((par5 >> 8) & 255) / 255.0F;
-        float var10 = (float) (par5 & 255) / 255.0F;
-        float var11 = (float) ((par6 >> 24) & 255) / 255.0F;
-        float var12 = (float) ((par6 >> 16) & 255) / 255.0F;
-        float var13 = (float) ((par6 >> 8) & 255) / 255.0F;
-        float var14 = (float) (par6 & 255) / 255.0F;
+    protected static void drawGradientRect(int x1, int y1, int x2, int y2, int bgCol, int fgCol) {
+        float bA = (float) ((bgCol >> 24) & 255) / 255.0F;
+        float bR = (float) ((bgCol >> 16) & 255) / 255.0F;
+        float bG = (float) ((bgCol >> 8) & 255) / 255.0F;
+        float bB = (float) (bgCol & 255) / 255.0F;
+        float fA = (float) ((fgCol >> 24) & 255) / 255.0F;
+        float fR = (float) ((fgCol >> 16) & 255) / 255.0F;
+        float fG = (float) ((fgCol >> 8) & 255) / 255.0F;
+        float fB = (float) (fgCol & 255) / 255.0F;
         GL11.glDisable(GL11.GL_TEXTURE_2D);
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glDisable(GL11.GL_ALPHA_TEST);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
         GL11.glShadeModel(GL11.GL_SMOOTH);
-        Tessellator var15 = Tessellator.instance;
-        var15.startDrawingQuads();
-        var15.setColorRGBA_F(var8, var9, var10, var7);
-        var15.addVertex(par3, par2, 100.0);
-        var15.addVertex(par1, par2, 100.0);
-        var15.setColorRGBA_F(var12, var13, var14, var11);
-        var15.addVertex(par1, par4, 100.0);
-        var15.addVertex(par3, par4, 100.0);
-        var15.draw();
+        Tessellator t = Tessellator.instance;
+        t.startDrawingQuads();
+        t.setColorRGBA_F(bR, bG, bB, bA);
+        t.addVertex(x2, y1, 100.0);
+        t.addVertex(x1, y1, 100.0);
+        t.setColorRGBA_F(fR, fG, fB, fA);
+        t.addVertex(x1, y2, 100.0);
+        t.addVertex(x2, y2, 100.0);
+        t.draw();
         GL11.glShadeModel(GL11.GL_FLAT);
         GL11.glDisable(GL11.GL_BLEND);
         GL11.glEnable(GL11.GL_ALPHA_TEST);
         GL11.glEnable(GL11.GL_TEXTURE_2D);
-    }
-
-    public static void drawTooltipBox(int x, int y, int w, int h, int bg, int grad1, int grad2) {
-        drawGradientRect(x + 1, y, w - 1, 1, bg, bg);
-        drawGradientRect(x + 1, y + h, w - 1, 1, bg, bg);
-        drawGradientRect(x + 1, y + 1, w - 1, h - 1, bg, bg);
-        drawGradientRect(x, y + 1, 1, h - 1, bg, bg);
-        drawGradientRect(x + w, y + 1, 1, h - 1, bg, bg);
-        drawGradientRect(x + 1, y + 2, 1, h - 3, grad1, grad2);
-        drawGradientRect((x + w) - 1, y + 2, 1, h - 3, grad1, grad2);
-        drawGradientRect(x + 1, y + 1, w - 1, 1, grad1, grad1);
-        drawGradientRect(x + 1, (y + h) - 1, w - 1, 1, grad2, grad2);
     }
 }

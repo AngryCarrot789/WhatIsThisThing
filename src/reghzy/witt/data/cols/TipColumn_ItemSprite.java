@@ -30,7 +30,6 @@ public class TipColumn_ItemSprite extends TipColumn {
 
     @Override
     public void onRender(ToolTip tip, Minecraft mc, int x, int y, int height) {
-        RenderHelper.enableGUIStandardItemLighting();
         if (stack.getItem() != null) {
             drawItem(x + 5, (y + (height / 2)) - 8, stack, mc);
         }
@@ -42,16 +41,18 @@ public class TipColumn_ItemSprite extends TipColumn {
 
         float oldLevel = render.zLevel;
 
+        RenderHelper.enableGUIStandardItemLighting();
         // enable 3d rendering
-        GL11.glEnable(2896);
-        GL11.glEnable(2929);
+        // GL11.glEnable(2896);
+        // GL11.glEnable(2929);
 
         render.zLevel = 200.0F;
         render.renderItemIntoGUI(mc.fontRenderer, mc.renderEngine, item, x, y);
         render.zLevel = oldLevel;
 
         // disable 3d, reverting to 3d
-        GL11.glDisable(2896);
-        GL11.glDisable(2929);
+        // GL11.glDisable(2896);
+        // GL11.glDisable(2929);
+        RenderHelper.disableStandardItemLighting();
     }
 }

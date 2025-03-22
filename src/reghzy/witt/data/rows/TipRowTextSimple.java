@@ -1,21 +1,21 @@
 package reghzy.witt.data.rows;
 
-import reghzy.witt.data.rows.TipRowText;
 import reghzy.witt.utils.Thickness;
 
 /**
  * A text row that only draws text, supporting colour too
  */
-public class TipRowTextConstant extends TipRowText {
+public class TipRowTextSimple extends TipRowText {
     private String colouredText, uncolouredText;
 
-    public TipRowTextConstant() {
+    public TipRowTextSimple() {
     }
 
-    public TipRowTextConstant(String colouredText) {
-        this.colouredText = colouredText;
+    public TipRowTextSimple(String colouredText) {
+        this(colouredText, new Thickness(0, 1, 3, 1));
     }
-    public TipRowTextConstant(String colouredText, Thickness padding) {
+
+    public TipRowTextSimple(String colouredText, Thickness padding) {
         this.colouredText = colouredText;
         this.setPadding(padding);
     }

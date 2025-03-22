@@ -2,6 +2,7 @@ package reghzy.witt;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.src.Block;
+import net.minecraft.src.BlockRedstoneRepeater;
 import net.minecraft.src.EntityLiving;
 import net.minecraft.src.EnumMovingObjectType;
 import net.minecraft.src.Item;
@@ -13,14 +14,21 @@ import net.minecraft.src.TileEntityFurnace;
 import net.minecraft.src.Vec3D;
 import net.minecraft.src.World;
 import net.minecraft.src.forge.IShearable;
+import reghzy.witt.data.ColumnPlacement;
 import reghzy.witt.data.RowPlacement;
 import reghzy.witt.data.cols.TipColumn_ItemSprite;
 import reghzy.witt.data.rows.TipRowTileFurnace;
 import reghzy.witt.data.rows.TipRowBlockType;
-import reghzy.witt.data.rows.TipRowTextConstant;
+import reghzy.witt.data.rows.TipRowTextSimple;
 import reghzy.witt.data.ToolTip;
-import reghzy.witt.integration.IDataProvider;
+import reghzy.witt.integration.BlockInfoProvider;
+import reghzy.witt.integration.BlockItemStackProvider;
+import reghzy.witt.integration.mods.EE2Integration;
+import reghzy.witt.integration.mods.IC2Integration;
+import reghzy.witt.integration.TileInfoProvider;
+import reghzy.witt.integration.mods.RedPowerIntegration;
 import reghzy.witt.integration.ToolTipIntegration;
+import reghzy.witt.utils.StringUtils;
 import reghzy.witt.utils.Thickness;
 
 import java.util.ArrayList;
@@ -37,12 +45,36 @@ public class LookHandler {
         this.mc = ModLoader.getMinecraftInstance();
 
         // show furnace progress
-        ToolTipIntegration.getInstance().registerTileProvider(TileEntityFurnace.class, new IDataProvider() {
+        ToolTipIntegration.getInstance().registerTileInfoProvider(TileEntityFurnace.class, new TileInfoProvider() {
             @Override
             public void provide(ToolTip tip, TileEntity tile) {
-                tip.addRow(new TipRowTileFurnace((TileEntityFurnace) tile), RowPlacement.FOOTER);
+                tip.addRow(new TipRowTileFurnace((TileEntityFurnace) tile, new Thickness(5, 2, 5, 5)), RowPlacement.FOOTER);
             }
         });
+
+        // show vanilla repeater delay
+        class RSRepeaterProvider implements BlockInfoProvider, BlockItemStackProvider {
+
+            @Override
+            public void provide(ToolTip tip, World world, int x, int y, int z, int bId) {
+                int delay = (world.getBlockMetadata(x, y, z) & 12) >> 2;
+                double secs = (double) delay / 20.0;
+                tip.addRow(new TipRowTextSimple("Delay: " + delay + " ticks (" + StringUtils.d2s(secs, 2) + "s)", new Thickness(1, 1, 5, 3)), tip.size(RowPlacement.CENTRE) - 1, RowPlacement.CENTRE);
+            }
+
+            @Override
+            public ItemStack getBlockAsItem(World world, int x, int y, int z, int bId, int bData) {
+                return new ItemStack(Item.redstoneRepeater.shiftedIndex, 0, 0);
+            }
+        }
+
+        RSRepeaterProvider provider = new RSRepeaterProvider();
+        ToolTipIntegration.getInstance().registerBlockInfoProvider(BlockRedstoneRepeater.class, provider);
+        ToolTipIntegration.getInstance().registerBlockItemProvider(BlockRedstoneRepeater.class, provider);
+
+        RedPowerIntegration.init();
+        IC2Integration.init();
+        EE2Integration.init();
     }
 
     public static LookHandler getInstance() {
@@ -52,28 +84,28 @@ public class LookHandler {
     }
 
     public void onTickPlayer() {
+        this.tip = null;
         if (this.mc.objectMouseOver != null && this.mc.objectMouseOver.typeOfHit == EnumMovingObjectType.ENTITY) {
             this.target = this.mc.objectMouseOver;
             return;
         }
 
-        this.tip = null;
         EntityLiving viewpoint = this.mc.renderViewEntity;
         this.target = viewpoint != null ? rayTrace(viewpoint, 4.0D, 0.0F) : null;
         if (this.target != null) {
             ItemStack targetStack = getTargetStack();
             if (targetStack != null) {
                 this.tip = new ToolTip();
-                this.tip.addColumn(true, new TipColumn_ItemSprite(targetStack));
+                this.tip.addColumn(ColumnPlacement.LEFT, new TipColumn_ItemSprite(targetStack));
                 this.tip.addRow(new TipRowBlockType(targetStack, new Thickness(1, 5, 5, 3)), RowPlacement.CENTRE);
-
                 int bId = this.mc.theWorld.getBlockId(this.target.blockX, this.target.blockY, this.target.blockZ);
-                String modName = TranslationHelper.bid2ModName.get(bId);
+                String modName = ObjectOwnerModHelper.bId2ModName.get(bId);
                 if (modName == null)
                     modName = "Minecraft";
 
-                this.tip.addRow(new TipRowTextConstant((char) 167 + "8" + modName, new Thickness(1, 3, 5, 5)), RowPlacement.CENTRE);
+                this.tip.addRow(new TipRowTextSimple("\u00A7b\u00A7o" + modName, new Thickness(1, 3, 5, 5)), RowPlacement.CENTRE);
 
+                ToolTipIntegration.getInstance().provideBlockInformation(this.tip, this.mc.theWorld, this.target.blockX, this.target.blockY, this.target.blockZ);
                 TileEntity tile = this.mc.theWorld.getBlockTileEntity(this.target.blockX, this.target.blockY, this.target.blockZ);
                 if (tile != null) {
                     ToolTipIntegration.getInstance().provideTileInformation(this.tip, tile);
@@ -88,7 +120,7 @@ public class LookHandler {
 
     public ItemStack getTargetStack() {
         if (this.target.typeOfHit == EnumMovingObjectType.TILE) {
-            return getIdentifierStack();
+            return getTargetItemStack();
         }
 
         return null;
@@ -103,23 +135,11 @@ public class LookHandler {
         return entity.worldObj.rayTraceBlocks_do(pos, end, rayTraceLiquid);
     }
 
-    public ItemStack getIdentifierStack() {
-        ArrayList<ItemStack> items = getIdentifierItems();
-        if (items.isEmpty())
+    public ItemStack getTargetItemStack() {
+        if (this.target == null) {
             return null;
-        Collections.sort(items, new Comparator<ItemStack>() {
-            @Override
-            public int compare(ItemStack a, ItemStack b) {
-                return b.getItemDamage() - a.getItemDamage();
-            }
-        });
-        return items.get(0);
-    }
+        }
 
-    public ArrayList<ItemStack> getIdentifierItems() {
-        ArrayList<ItemStack> items = new ArrayList<ItemStack>();
-        if (this.target == null)
-            return items;
         World world = this.mc.theWorld;
         int x = this.target.blockX;
         int y = this.target.blockY;
@@ -128,35 +148,46 @@ public class LookHandler {
         int blockData = world.getBlockMetadata(x, y, z);
         Block mouseBlock = Block.blocksList[blockID];
         if (mouseBlock != null) {
+            ItemStack providedItemStack = ToolTipIntegration.getInstance().getBlockAsItem(world, x, y, z, blockID, blockData);
+            if (providedItemStack != null) {
+                return providedItemStack;
+            }
+
             if (world.getBlockTileEntity(x, y, z) == null) {
                 try {
-                    ItemStack block = new ItemStack(mouseBlock, 1, blockData);
-                    items.add(block);
-                    return items;
+                    ItemStack is = new ItemStack(mouseBlock, 1, blockData);
+                    return is; // variable for debugging
                 }
                 catch (Exception e) { /* ignored */ }
             }
 
             try {
                 ArrayList<ItemStack> list = mouseBlock.getBlockDropped(world, x, y, z, blockData, 0);
-                if (list.size() > 0) {
-                    items.add(list.get(0));
-                    return items;
+                if (!list.isEmpty()) {
+                    return list.get(0);
                 }
             }
             catch (Exception e) { /* ignored */ }
 
             if (mouseBlock instanceof IShearable) {
                 IShearable shear = (IShearable) mouseBlock;
-                if (shear.isShearable(new ItemStack(Item.shears), world, x, y, z))
-                    items.addAll(shear.onSheared(new ItemStack(Item.shears), world, x, y, z, 0));
+                if (shear.isShearable(new ItemStack(Item.shears), world, x, y, z)) {
+                    ArrayList<ItemStack> list = shear.onSheared(new ItemStack(Item.shears), world, x, y, z, 0);
+                    Collections.sort(list, new Comparator<ItemStack>() {
+                        @Override
+                        public int compare(ItemStack a, ItemStack b) {
+                            return b.getItemDamage() - a.getItemDamage();
+                        }
+                    });
+
+                    return list.get(0);
+                }
             }
 
-            if (items.size() == 0)
-                items.add(0, new ItemStack(mouseBlock, 1, blockData));
+            return new ItemStack(mouseBlock, 1, blockData);
         }
 
-        return items;
+        return null;
     }
 
     public ToolTip getCurrentTip() {

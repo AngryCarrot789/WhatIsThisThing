@@ -7,7 +7,7 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="minecraft" level="application" />
+    <orderEntry type="library" name="minecraft-full-src-deobf-1.2.5" level="application" />
     <orderEntry type="module-library">
       <library>
         <CLASSES>
@@ -30,6 +30,60 @@
       <library>
         <CLASSES>
           <root url="jar://$MODULE_DIR$/../MCP-62-U2D/mcp62/jars/bin/lwjgl_util.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://D:/.technic/technic/modpacks/tekkit/mods/RedPowerCore-2.0pr5b2.zip!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://D:/.technic/technic/modpacks/tekkit/mods/RedPowerLogic-2.0pr5b2.zip!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://D:/.technic/technic/modpacks/tekkit/mods/industrialcraft-2-client_1.97.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://D:/.technic/technic/modpacks/tekkit/mods/RedPowerMachine-2.0pr5b2.zip!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://D:/.technic/technic/modpacks/tekkit/mods/AdvancedMachines_4.0_client.zip!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://D:/.technic/technic/modpacks/tekkit/mods/EE2ClientV1.4.6.5.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

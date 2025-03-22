@@ -2,6 +2,7 @@ package reghzy.witt.data.rows;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.src.ModLoader;
+import net.minecraft.src.RenderHelper;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.Point;
 import reghzy.witt.data.ToolTip;
@@ -72,6 +73,8 @@ public abstract class TipRowText extends TipRow {
     }
 
     public static void drawText(String text, Thickness padding, Minecraft mc, int x, int y) {
+        RenderHelper.enableGUIStandardItemLighting();
+
         GL11.glDisable(32826);
         GL11.glEnable(GL11.GL_LIGHTING);
         GL11.glDisable(GL11.GL_DEPTH_TEST);
@@ -82,6 +85,9 @@ public abstract class TipRowText extends TipRow {
         mc.fontRenderer.drawString(text, x + pad.x1, y + pad.y1, 0xffffff);
 
         GL11.glDisable(GL11.GL_BLEND);
+        GL11.glDisable(GL11.GL_LIGHTING);
         GL11.glEnable(32826);
+
+        RenderHelper.disableStandardItemLighting();
     }
 }

@@ -1,18 +1,12 @@
 import cpw.mods.fml.common.FMLCommonHandler;
 import net.minecraft.src.KeyBinding;
-import net.minecraft.src.forge.NetworkMod;
+import reghzy.WittMod;
 import reghzy.witt.WittTickHandler;
 
-public class mod_Witt extends NetworkMod {
-    private static mod_Witt instance;
+public class mod_Witt extends WittMod {
     private KeyBinding keyOpenMenu;
 
     public mod_Witt() {
-        instance = this;
-    }
-
-    public static mod_Witt getInstance() {
-        return instance;
     }
 
     @Override

@@ -11,11 +11,13 @@ import java.text.MessageFormat;
 
 public class TipRowTileFurnace extends TipRow {
     private final TileEntityFurnace furnace;
+    private final Thickness padding;
     private String lastMsgForTick;
     private int lastMsgTick;
 
-    public TipRowTileFurnace(TileEntityFurnace furnace) {
+    public TipRowTileFurnace(TileEntityFurnace furnace, Thickness padding) {
         this.furnace = furnace;
+        this.padding = padding;
     }
 
     private String getMessage(int burnTick) {
@@ -36,11 +38,11 @@ public class TipRowTileFurnace extends TipRow {
     @Override
     public void onRender(ToolTip tip, Minecraft mc, int x, int y, int width) {
         super.onRender(tip, mc, x, y, width);
-        TipRowText.drawText(getMessage(this.furnace.furnaceBurnTime), new Thickness(5, 2, 5, 5), ModLoader.getMinecraftInstance(), x, y);
+        TipRowText.drawText(getMessage(this.furnace.furnaceBurnTime), this.padding, ModLoader.getMinecraftInstance(), x, y);
     }
 
     @Override
     public Point getSize() {
-        return TipRowText.measureText(getMessage(this.furnace.furnaceBurnTime), new Thickness(5, 2, 5, 5), ModLoader.getMinecraftInstance());
+        return TipRowText.measureText(getMessage(this.furnace.furnaceBurnTime), this.padding, ModLoader.getMinecraftInstance());
     }
 }

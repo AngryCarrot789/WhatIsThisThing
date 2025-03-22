@@ -3,7 +3,7 @@ package reghzy.witt.integration;
 import net.minecraft.src.TileEntity;
 import reghzy.witt.data.ToolTip;
 
-public interface IDataProvider {
+public interface TileInfoProvider {
     /**
      * Provides tooltip data for a tile-entity
      * @param tip  The tooltip being created

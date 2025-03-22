@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact name="unnamed">
+    <output-path>$PROJECT_DIR$/../MCP-62-U2D/mcp62/bin/minecraft</output-path>
+    <root id="root">
+      <element id="module-output" name="Witt" />
+    </root>
+  </artifact>
+</component>
