@@ -69,7 +69,7 @@ public abstract class TipRowText extends TipRow {
     public static Point measureText(String textNoColour, Thickness padding, Minecraft mc) {
         int width = textNoColour != null ? mc.fontRenderer.getStringWidth(textNoColour) : 0;
         Thickness pad = padding != null ? padding : Thickness.EMPTY;
-        return new Point(width + pad.x1 + pad.x2, (textNoColour == null ? 0 : 7) + pad.y1 + pad.y2);
+        return new Point(width + pad.left + pad.right, (textNoColour == null ? 0 : 7) + pad.top + pad.bottom);
     }
 
     public static void drawText(String text, Thickness padding, Minecraft mc, int x, int y) {
@@ -82,7 +82,7 @@ public abstract class TipRowText extends TipRow {
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
 
         Thickness pad = padding != null ? padding : Thickness.EMPTY;
-        mc.fontRenderer.drawString(text, x + pad.x1, y + pad.y1, 0xffffff);
+        mc.fontRenderer.drawString(text, x + pad.left, y + pad.top, 0xffffff);
 
         GL11.glDisable(GL11.GL_BLEND);
         GL11.glDisable(GL11.GL_LIGHTING);

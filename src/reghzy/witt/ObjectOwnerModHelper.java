@@ -125,6 +125,7 @@ public class ObjectOwnerModHelper {
         bId2ModName.put(255, "Modular Force Field System");
         bId2ModName.put(4095, "Immibis");
 
+        // tekkit classic mod list, client side
 //        0 = "mod_CodeChickenCore 0.5.3"
 //        1 = "mod_MinecraftForge 3.3.8.164"
 //        2 = "mod_NotEnoughItems 1.2.2.4"

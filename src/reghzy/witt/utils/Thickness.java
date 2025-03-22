@@ -3,13 +3,13 @@ package reghzy.witt.utils;
 public class Thickness {
     public static final Thickness EMPTY = new Thickness(0);
 
-    public final int x1, y1, x2, y2;
+    public final int left, top, right, bottom;
 
-    public Thickness(int x1, int y1, int x2, int y2) {
-        this.x1 = x1;
-        this.y1 = y1;
-        this.x2 = x2;
-        this.y2 = y2;
+    public Thickness(int left, int y1, int x2, int y2) {
+        this.left = left;
+        this.top = y1;
+        this.right = x2;
+        this.bottom = y2;
     }
 
     public Thickness(int x, int y) {
@@ -20,27 +20,33 @@ public class Thickness {
         this(all, all, all, all);
     }
 
-    public int getX1() {
-        return this.x1;
+    public int getLeft() {
+        return this.left;
     }
 
-    public int getY1() {
-        return this.y1;
+    public int getTop() {
+        return this.top;
     }
 
-    public int getX2() {
-        return this.x2;
+    public int getRight() {
+        return this.right;
     }
 
-    public int getY2() {
-        return this.y2;
+    public int getBottom() {
+        return this.bottom;
     }
 
-    public int getWidth() {
-        return this.x2 - this.x1;
+    /**
+     * Returns the total horizontal padding (left+right)
+     */
+    public int getHorizontal() {
+        return this.left + this.right;
     }
 
-    public int getHeight() {
-        return this.y2 - this.y1;
+    /**
+     * Returns the total vertical padding (top+bottom)
+     */
+    public int getVertical() {
+        return this.top + this.bottom;
     }
 }

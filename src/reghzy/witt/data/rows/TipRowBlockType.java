@@ -5,7 +5,6 @@ import net.minecraft.src.Item;
 import net.minecraft.src.ItemBlock;
 import net.minecraft.src.ItemStack;
 import net.minecraft.src.StringTranslate;
-import reghzy.witt.data.rows.TipRowText;
 import reghzy.witt.utils.Thickness;
 
 public final class TipRowBlockType extends TipRowText {
@@ -54,12 +53,13 @@ public final class TipRowBlockType extends TipRowText {
             }
         }
 
-        try {
-            String itemNameIS = item.getItemNameIS(stack);
-            String translatedName = ("" + StringTranslate.getInstance().translateNamedKey(itemNameIS)).trim();
-        }
-        catch (Throwable e) {
-        }
+        // Debug tests
+        // try {
+        //     String itemNameIS = item.getItemNameIS(stack);
+        //     String translatedName = ("" + StringTranslate.getInstance().translateNamedKey(itemNameIS)).trim();
+        // }
+        // catch (Throwable e) {
+        // }
 
         if (appendType) {
             int dmg = stack.getItemDamage();
