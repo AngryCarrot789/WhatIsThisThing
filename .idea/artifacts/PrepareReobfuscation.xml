@@ -1,6 +1,6 @@
 <component name="ArtifactManager">
   <artifact name="PrepareReobfuscation">
-    <output-path>$PROJECT_DIR$/../MCP-62-U2D/mcp62/bin/minecraft</output-path>
+    <output-path>$PROJECT_DIR$/../mcp62/bin/minecraft</output-path>
     <root id="root">
       <element id="module-output" name="Witt" />
     </root>
