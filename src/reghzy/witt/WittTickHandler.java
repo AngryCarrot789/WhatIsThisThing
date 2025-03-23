@@ -4,6 +4,7 @@ import cpw.mods.fml.common.ITickHandler;
 import cpw.mods.fml.common.TickType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.src.ModLoader;
+import reghzy.WittMod;
 import reghzy.witt.data.ToolTip;
 
 import java.util.EnumSet;
@@ -30,7 +31,7 @@ public class WittTickHandler implements ITickHandler {
     @Override
     public void tickEnd(EnumSet<TickType> types, Object... objects) {
         if (types.contains(TickType.RENDER)) {
-            if ((this.mc.currentScreen == null) && (this.mc.theWorld != null)) {
+            if (WittMod.getInstance().getConfig().canShowToolTip && (this.mc.currentScreen == null) && (this.mc.theWorld != null)) {
                 // Do not draw when GUI is off or tab is pressed or no target
                 if (!Minecraft.isGuiEnabled() || this.mc.gameSettings.keyBindPlayerList.pressed || (LookHandler.getInstance().getTarget() == null)) {
                     return;

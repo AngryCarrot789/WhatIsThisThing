@@ -1,9 +1,75 @@
 package reghzy.witt;
 
+import cpw.mods.fml.common.Loader;
+import cpw.mods.fml.common.ModContainer;
+import cpw.mods.fml.common.ModMetadata;
+import net.minecraft.src.Block;
+import net.minecraft.src.Item;
+import reghzy.WittMod;
+
+import java.io.File;
+import java.security.CodeSource;
 import java.util.HashMap;
 
 public class ObjectOwnerModHelper {
-    public static final HashMap<Integer, String> bId2ModName = new HashMap<Integer, String>();
+    private static final HashMap<String, ModContainer> codeSourceToMod = new HashMap<String, ModContainer>();
+    public static final HashMap<Integer, String> idToModDisplayNameFallback = new HashMap<Integer, String>();
+    private static final HashMap<Integer, String> blockIdToModName = new HashMap<Integer, String>();
+    private static final HashMap<Integer, String> itemIdToModName = new HashMap<Integer, String>();
+    private static final HashMap<String, String> modIdToDisplayName = new HashMap<String, String>();
+
+    public static void loadMods() {
+        for (ModContainer mod : Loader.getModList()) {
+            try {
+                CodeSource protection = mod.getMod().getClass().getProtectionDomain().getCodeSource();
+                if (protection != null) {
+                    String location = protection.getLocation().getFile();
+                    if (location == null) {
+                        continue;
+                    }
+
+                    if (new File(location).isDirectory())
+                        continue;
+
+                    String fix = location.endsWith("/") || location.endsWith("\\") ? location.substring(0, location.length() - 1) : location;
+                    if (fix.endsWith("modpack.jar") || fix.endsWith("minecraft.jar")) {
+                        // do not add minecraft/forge things
+                        continue;
+                    }
+
+                    codeSourceToMod.put(location, mod);
+                }
+            }
+            catch (Throwable e) {
+                WittMod.logger.warning("Error parsing mod " + mod.getName() + ": " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * Some mods do not ever specify their "readable name", only a mod id.
+     * This can be used to convert a modId into a nice name, i.e. "mod_RedPowerCore" into "RedPower Core".
+     * <p>
+     *     These mappings are only used when no mod name is specified in the mod metadata file (mcmod.info)
+     * </p>
+     */
+    public static void addModIdToDisplayNameMapping(String modId, String displayName) {
+        if (displayName == null) {
+            modIdToDisplayName.remove(modId);
+        }
+        else {
+            modIdToDisplayName.put(modId, displayName);
+        }
+    }
+
+    /**
+     * Adds a fallback mod display name for block ids. Used as a last resort instead of showing "Minecraft"
+     */
+    public static void addFallbackModNameForId(String modName, int... itemOrBlockIds) {
+        for (int id : itemOrBlockIds)
+            idToModDisplayNameFallback.put(id, modName);
+    }
 
     static {
         /*
@@ -16,158 +82,161 @@ public class ObjectOwnerModHelper {
                 }).collect(Collectors.joining());
          */
 
-        bId2ModName.put(48, "RedPower"); // eloraam.world.BlockCobbleMossifier
-        bId2ModName.put(85, "Railcraft"); // railcraft.common.rails.BlockFenceReplacement
-        bId2ModName.put(98, "RedPower"); // eloraam.world.BlockBrickMossifier
-        bId2ModName.put(126, "Equivalent Exchange 2");
-        bId2ModName.put(127, "Equivalent Exchange 2");
-        bId2ModName.put(128, "Equivalent Exchange 2");
-        bId2ModName.put(129, "Equivalent Exchange 2");
-        bId2ModName.put(130, "Equivalent Exchange 2");
-        bId2ModName.put(133, "RedPower");
-        bId2ModName.put(134, "RedPower");
-        bId2ModName.put(135, "Nether Ores");
-        bId2ModName.put(136, "RedPower");
-        bId2ModName.put(137, "RedPower");
-        bId2ModName.put(138, "RedPower");
-        bId2ModName.put(139, "RedPower");
-        bId2ModName.put(140, "RedPower");
-        bId2ModName.put(141, "RedPower");
-        bId2ModName.put(142, "RedPower");
-        bId2ModName.put(143, "RedPower");
-        bId2ModName.put(144, "RedPower");
-        bId2ModName.put(145, "RedPower");
-        bId2ModName.put(146, "RedPower");
-        bId2ModName.put(147, "RedPower");
-        bId2ModName.put(148, "RedPower");
-        bId2ModName.put(150, "RedPower");
-        bId2ModName.put(151, "RedPower");
-        bId2ModName.put(152, "RedPower");
-        bId2ModName.put(153, "Buildcraft");
-        bId2ModName.put(154, "Buildcraft");
-        bId2ModName.put(155, "Buildcraft");
-        bId2ModName.put(156, "Buildcraft");
-        bId2ModName.put(157, "Buildcraft");
-        bId2ModName.put(158, "Buildcraft");
-        bId2ModName.put(159, "Buildcraft");
-        bId2ModName.put(160, "Buildcraft");
-        bId2ModName.put(161, "Buildcraft");
-        bId2ModName.put(162, "Buildcraft");
-        bId2ModName.put(163, "Buildcraft");
-        bId2ModName.put(164, "Buildcraft");
-        bId2ModName.put(165, "Buildcraft");
-        bId2ModName.put(166, "Buildcraft");
-        bId2ModName.put(167, "Buildcraft");
-        bId2ModName.put(169, "Buildcraft");
-        bId2ModName.put(170, "Buildcraft");
-        bId2ModName.put(171, "Buildcraft");
-        bId2ModName.put(172, "Buildcraft");
-        bId2ModName.put(173, "Buildcraft");
-        bId2ModName.put(174, "Buildcraft");
-        bId2ModName.put(175, "Buildcraft");
-        bId2ModName.put(176, "Buildcraft");
-        bId2ModName.put(177, "RedPower");
-        bId2ModName.put(178, "Enderchests");
-        bId2ModName.put(179, "Buildcraft");
-        bId2ModName.put(181, "Iron Chests");
-        bId2ModName.put(183, "Compact Solars");
-        bId2ModName.put(187, "Industrial Craft 2");
-        bId2ModName.put(188, "Advanced Machines (IC2)");
-        bId2ModName.put(190, "Power Converters");
-        bId2ModName.put(192, "Industrial Craft 2");
-        bId2ModName.put(194, "Tubestuff");
-        bId2ModName.put(206, "Railcraft");
-        bId2ModName.put(207, "Computercraft");
-        bId2ModName.put(208, "Computercraft");
-        bId2ModName.put(209, "Railcraft");
-        bId2ModName.put(211, "Railcraft");
-        bId2ModName.put(212, "Railcraft");
-        bId2ModName.put(213, "Railcraft");
-        bId2ModName.put(214, "Railcraft");
-        bId2ModName.put(215, "CC Sensors");
-        bId2ModName.put(216, "Computercraft");
-        bId2ModName.put(217, "Industrial Craft 2");
-        bId2ModName.put(218, "Industrial Craft 2");
-        bId2ModName.put(219, "Industrial Craft 2");
-        bId2ModName.put(220, "Industrial Craft 2");
-        bId2ModName.put(221, "Industrial Craft 2");
-        bId2ModName.put(222, "Industrial Craft 2");
-        bId2ModName.put(223, "Industrial Craft 2");
-        bId2ModName.put(224, "Industrial Craft 2");
-        bId2ModName.put(225, "Industrial Craft 2");
-        bId2ModName.put(226, "Industrial Craft 2");
-        bId2ModName.put(227, "Industrial Craft 2");
-        bId2ModName.put(228, "Industrial Craft 2");
-        bId2ModName.put(229, "Industrial Craft 2");
-        bId2ModName.put(230, "Industrial Craft 2");
-        bId2ModName.put(231, "Industrial Craft 2");
-        bId2ModName.put(232, "Industrial Craft 2");
-        bId2ModName.put(233, "Industrial Craft 2");
-        bId2ModName.put(234, "Industrial Craft 2");
-        bId2ModName.put(235, "Industrial Craft 2");
-        bId2ModName.put(236, "Industrial Craft 2");
-        bId2ModName.put(237, "Industrial Craft 2");
-        bId2ModName.put(238, "Industrial Craft 2");
-        bId2ModName.put(239, "Industrial Craft 2");
-        bId2ModName.put(240, "Industrial Craft 2");
-        bId2ModName.put(241, "Industrial Craft 2");
-        bId2ModName.put(242, "Industrial Craft 2");
-        bId2ModName.put(243, "Industrial Craft 2");
-        bId2ModName.put(244, "Industrial Craft 2");
-        bId2ModName.put(245, "Industrial Craft 2");
-        bId2ModName.put(246, "Industrial Craft 2");
-        bId2ModName.put(247, "Industrial Craft 2");
-        bId2ModName.put(248, "Industrial Craft 2");
-        bId2ModName.put(249, "Industrial Craft 2");
-        bId2ModName.put(250, "Industrial Craft 2");
-        bId2ModName.put(253, "Modular Force Field System");
-        bId2ModName.put(254, "Modular Force Field System");
-        bId2ModName.put(255, "Modular Force Field System");
-        bId2ModName.put(4095, "Immibis");
+        addFallbackModNameForId("RedPower", 48); // eloraam.world.BlockCobbleMossifier
+        addFallbackModNameForId("Railcraft", 85); // railcraft.common.rails.BlockFenceReplacement
+        addFallbackModNameForId("RedPower", 98); // eloraam.world.BlockBrickMossifier
+        addFallbackModNameForId("Railcraft", 206, 209, 211, 212, 213, 214);
+        addFallbackModNameForId("Equivalent Exchange 2", 126, 127, 128, 129, 130);
+        addFallbackModNameForId("RedPower", 133, 134, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 150, 151, 152, 177);
+        addFallbackModNameForId("Nether Ores", 135);
+        addFallbackModNameForId("Buildcraft", 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 169, 170, 171, 172, 173, 174, 175, 176, 179);
+        addFallbackModNameForId("Enderchests", 178);
+        addFallbackModNameForId("Iron Chests", 181);
+        addFallbackModNameForId("Compact Solar Arrays", 183);
+        addFallbackModNameForId("Industrial Craft 2", 187);
+        addFallbackModNameForId("Advanced Machines (IC2)", 188);
+        addFallbackModNameForId("Power Converters", 190);
+        addFallbackModNameForId("Industrial Craft 2", 192);
+        addFallbackModNameForId("Tubestuff", 194);
+        addFallbackModNameForId("ComputerCraft", 207, 208);
+        addFallbackModNameForId("CC Sensors", 215);
+        addFallbackModNameForId("Computercraft", 216);
+        addFallbackModNameForId("Industrial Craft 2", 217, 218, 219, 220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239, 240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250);
+        addFallbackModNameForId("Modular ForceField Systems", 253, 254, 255);
+        addFallbackModNameForId("Immibis", 4095);
 
-        // tekkit classic mod list, client side
-//        0 = "mod_CodeChickenCore 0.5.3"
-//        1 = "mod_MinecraftForge 3.3.8.164"
-//        2 = "mod_NotEnoughItems 1.2.2.4"
-//        3 = "mod_ReiMinimap v3.2_04 [1.2.5]"
-//        4 = "mod_IC2 v1.97"
-//        5 = "mod_IC2AdvancedMachines v4.0"
-//        6 = "mod_BuildCraftCore 2.2.14"
-//        7 = "mod_BuildCraftBuilders 2.2.14"
-//        8 = "mod_BuildCraftEnergy 2.2.14"
-//        9 = "mod_BuildCraftFactory 2.2.14"
-//        10 = "mod_BuildCraftTransport 2.2.14"
-//        11 = "mod_AdditionalPipes 2.1.3 (Minecraft 1.2.5, Buildcraft 2.2.14, Forge 3.0.1.75)"
-//        12 = "mod_ComputerCraft 1.33"
-//        13 = "mod_RedPowerMachine 2.0pr5b2"
-//        14 = "mod_ccSensors MC1.2.5 Build017pr1"
-//        15 = "mod_CCTurtle 1.33"
-//        16 = "mod_EE 1.4.6.5"
-//        17 = "mod_EnderStorage 1.1.3"
-//        18 = "mod_IC2NuclearControl v1.1.10"
-//        19 = "mod_ImmibisCore 49.1.1"
-//        20 = "mod_InvTweaks 1.41b (1.2.4)"
-//        21 = "mod_LumySkinPatch 1.0.13"
-//        22 = "mod_MAtmos_forModLoader r12 for 1.1.x"
-//        23 = "mod_ModularForceFieldSystem rev7"
-//        24 = "mod_IC2_ChargingBench 1.95b"
-//        25 = "mod_CompactSolars 2.3.2"
-//        26 = "mod_IronChest 3.8"
-//        27 = "mod_RedPowerCore 2.0pr5b2"
-//        28 = "mod_NetherOres 1.2.5R1.2.2"
-//        29 = "mod_PowerConverters 1.2.5R1.3.4"
-//        30 = "mod_Railcraft 5.3.3"
-//        31 = "mod_RedPowerControl 2.0pr5b2"
-//        32 = "mod_RedPowerLighting 2.0pr5b2"
-//        33 = "mod_RedPowerLogic 2.0pr5b2"
-//        34 = "mod_RedPowerWiring 2.0pr5b2"
-//        35 = "mod_RedPowerWorld 2.0pr5b2"
-//        36 = "mod_TubeStuff 49.1.2"
-//        37 = "Balkon's WeaponMod 1.2.5 v8.6.0"
-//        38 = "mod_WorldEditCUI 1.2.5 for Minecraft version 1.2.5"
-//        39 = "mod_WirelessRedstoneCore 1.2.2.3"
-//        40 = "mod_WirelessRedstoneAddons 1.2.2.3"
-//        41 = "mod_WirelessRedstoneRedPower 1.2.2.1"
-//        42 = "mod_ImmiChunkLoaders rev3.2"
+        addModIdToDisplayNameMapping("mod_CodeChickenCore", "CodeChicken Core");
+        addModIdToDisplayNameMapping("mod_MinecraftForge", "Minecraft Forge");
+        addModIdToDisplayNameMapping("mod_NotEnoughItems", "Not Enough Items");
+        addModIdToDisplayNameMapping("mod_ReiMinimap", "Rei's Minimap");
+        addModIdToDisplayNameMapping("mod_RedPowerCore", "RedPower");
+        addModIdToDisplayNameMapping("mod_RedPowerMachine", "RedPower Machines");
+        addModIdToDisplayNameMapping("mod_RedPowerControl", "RedPower Control");
+        addModIdToDisplayNameMapping("mod_RedPowerLighting", "RedPower Lighting");
+        addModIdToDisplayNameMapping("mod_RedPowerLogic", "RedPower Logic");
+        addModIdToDisplayNameMapping("mod_RedPowerWiring", "RedPower Wiring");
+        addModIdToDisplayNameMapping("mod_RedPowerWorld", "RedPower World");
+        addModIdToDisplayNameMapping("mod_IC2", "IndustrialCraft 2");
+        addModIdToDisplayNameMapping("mod_IC2AdvancedMachines", "Advanced Machines (IC2)");
+        addModIdToDisplayNameMapping("mod_BuildCraftCore", "BuildCraft");
+        addModIdToDisplayNameMapping("mod_BuildCraftBuilders", "BuildCraft Builders");
+        addModIdToDisplayNameMapping("mod_BuildCraftEnergy", "BuildCraft Energy");
+        addModIdToDisplayNameMapping("mod_BuildCraftFactory", "BuildCraft Factory");
+        addModIdToDisplayNameMapping("mod_BuildCraftTransport", "BuildCraft Transport");
+        addModIdToDisplayNameMapping("mod_AdditionalPipes", "Additional Pipes");
+        addModIdToDisplayNameMapping("mod_ComputerCraft", "ComputerCraft");
+        addModIdToDisplayNameMapping("mod_ccSensors", "CC Sensors");
+        addModIdToDisplayNameMapping("mod_CCTurtle", "CC Turtles");
+        addModIdToDisplayNameMapping("mod_EE", "Equivalent Exchange 2");
+        addModIdToDisplayNameMapping("mod_EnderStorage", "Ender Storage");
+        addModIdToDisplayNameMapping("mod_IC2NuclearControl", "Nuclear Control (IC2)");
+        addModIdToDisplayNameMapping("mod_ImmibisCore", "Immibis");
+        addModIdToDisplayNameMapping("mod_InvTweaks", "InvTweaks");
+        addModIdToDisplayNameMapping("mod_LumySkinPatch", "LumySkinPatch");
+        addModIdToDisplayNameMapping("mod_MAtmos_forModLoader", "MAtmos");
+        addModIdToDisplayNameMapping("mod_ModularForceFieldSystem", "Modular ForceField Systems");
+        addModIdToDisplayNameMapping("mod_IC2_ChargingBench", "Charging Bench (IC2)");
+        addModIdToDisplayNameMapping("mod_CompactSolars", "Compact Solar Arrays");
+        addModIdToDisplayNameMapping("mod_IronChest", "Iron Chest");
+        addModIdToDisplayNameMapping("mod_NetherOres", "Nether Ores");
+        addModIdToDisplayNameMapping("mod_PowerConverters", "Power Converters");
+        addModIdToDisplayNameMapping("mod_Railcraft", "Railcraft");
+        addModIdToDisplayNameMapping("mod_TubeStuff", "Tube Stuff");
+        addModIdToDisplayNameMapping("mod_WirelessRedstoneCore", "WR-CBE");
+        addModIdToDisplayNameMapping("mod_WirelessRedstoneAddons", "WR-CBE Addons");
+        addModIdToDisplayNameMapping("mod_WirelessRedstoneRedPower", "WR-CBE RedPower");
+        addModIdToDisplayNameMapping("mod_ImmiChunkLoaders", "Immibis Chunk Loaders");
+    }
+
+    public static String getModNameForBlock(int id) {
+        String name = blockIdToModName.get(id);
+        if (name != null && !name.isEmpty()) {
+            return name;
+        }
+
+        Block block = id > 0 && id < Block.blocksList.length ? Block.blocksList[id] : null;
+        if (block != null) {
+            name = getModForObjectSlow(block);
+        }
+
+        if (name == null || name.isEmpty()) {
+            if ((name = idToModDisplayNameFallback.get(id)) == null || name.isEmpty()) {
+                name = "Minecraft";
+            }
+
+            blockIdToModName.put(id, name);
+        }
+
+        return name;
+    }
+
+    public static String getModNameForItemId(int id) {
+        String name = itemIdToModName.get(id);
+        if (name != null && !name.isEmpty()) {
+            return name;
+        }
+
+        Item item = id > 0 && id < Item.itemsList.length ? Item.itemsList[id] : null;
+        if (item != null) {
+            name = getModForObjectSlow(item);
+        }
+
+        if (name == null || name.isEmpty()) {
+            if ((name = idToModDisplayNameFallback.get(id)) == null || name.isEmpty()) {
+                name = "Minecraft";
+            }
+
+            itemIdToModName.put(id, name);
+        }
+
+        return name;
+    }
+
+    public static String getModForObjectSlow(Object object) {
+        String codeSrcFile;
+        ModContainer container;
+        try {
+            CodeSource protection = object.getClass().getProtectionDomain().getCodeSource();
+            if (protection == null) {
+                return null;
+            }
+
+            codeSrcFile = protection.getLocation().getFile();
+            if (codeSrcFile == null || codeSrcFile.isEmpty()) {
+                return null;
+            }
+        }
+        catch (Throwable ignored) {
+            return null;
+        }
+
+        if ((container = codeSourceToMod.get(codeSrcFile)) != null) {
+            ModMetadata metadata = container.getMetadata();
+
+            // Get metadata name
+            String modName = metadata != null ? metadata.name : null;
+            if (modName == null || modName.isEmpty())
+                modName = modIdToDisplayName.get(container.getName());
+
+            // If no luck, get mod name
+            if (modName == null || modName.isEmpty())
+                modName = container.getName();
+
+            if (modName == null)
+                modName = "";
+
+            if (modName.startsWith("mod_"))
+                modName = modName.substring(4);
+
+            if (!modName.isEmpty() && !modName.equalsIgnoreCase("minecraftforge")) {
+                // upper case first letter just in case we're using a boring mod id
+                if (modName.length() > 1)
+                    modName = Character.toUpperCase(modName.charAt(0)) + modName.substring(1);
+
+                return modName;
+            }
+        }
+
+        return null;
     }
 }

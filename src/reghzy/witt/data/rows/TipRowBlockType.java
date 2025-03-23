@@ -5,6 +5,7 @@ import net.minecraft.src.Item;
 import net.minecraft.src.ItemBlock;
 import net.minecraft.src.ItemStack;
 import net.minecraft.src.StringTranslate;
+import reghzy.WittMod;
 import reghzy.witt.utils.Thickness;
 
 public final class TipRowBlockType extends TipRowText {
@@ -44,9 +45,14 @@ public final class TipRowBlockType extends TipRowText {
                         }
 
                         if (displayName == null || displayName.isEmpty()) {
-                            int dmg = stack.getItemDamage();
-                            displayName = stack.itemID + (dmg != 0 ? (":" + dmg) : "");
                             appendType = false;
+                            if (WittMod.getInstance().getConfig().canShowIdMeta) {
+                                int dmg = stack.getItemDamage();
+                                displayName = stack.itemID + (dmg != 0 ? (":" + dmg) : "");
+                            }
+                            else {
+                                displayName = "Unnamed";
+                            }
                         }
                     }
                 }
@@ -61,7 +67,7 @@ public final class TipRowBlockType extends TipRowText {
         // catch (Throwable e) {
         // }
 
-        if (appendType) {
+        if (appendType && WittMod.getInstance().getConfig().canShowIdMeta) {
             int dmg = stack.getItemDamage();
             displayName += " (" + stack.itemID + (dmg != 0 ? (":" + dmg + ")") : ")");
         }

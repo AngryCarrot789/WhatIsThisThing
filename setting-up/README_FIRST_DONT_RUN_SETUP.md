@@ -60,6 +60,8 @@ mod into tekkit classic just yet. That requires the next section
 
 At some point, once I can figure out how to, I will make maybe an Ant script to do all of this for us, since it's tedious do this over and over again to test things
 
+Also, to prevent your mod being loaded twice when debugging again, delete our mod folder and file in `ModMaking/mcp62/bin/minecraft`
+
 > #### Explanations:
 > Step 1: copies the compilation output into `ModMaking/mcp62/bin/minecraft`, which is where the deobfuscated but compiled minecraft client source code is stored.
 > 

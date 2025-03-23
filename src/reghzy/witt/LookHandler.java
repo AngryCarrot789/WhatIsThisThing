@@ -14,6 +14,7 @@ import net.minecraft.src.TileEntityFurnace;
 import net.minecraft.src.Vec3D;
 import net.minecraft.src.World;
 import net.minecraft.src.forge.IShearable;
+import reghzy.WittMod;
 import reghzy.witt.data.ColumnPlacement;
 import reghzy.witt.data.RowPlacement;
 import reghzy.witt.data.cols.TipColumn_ItemSprite;
@@ -95,15 +96,20 @@ public class LookHandler {
         if (this.target != null) {
             ItemStack targetStack = getTargetStack();
             if (targetStack != null) {
+                WittConfig cfg = WittMod.getInstance().getConfig();
+
                 this.tip = new ToolTip();
-                this.tip.addColumn(ColumnPlacement.LEFT, new TipColumn_ItemSprite(targetStack));
+                if (cfg.canShowItemSprite) {
+                    this.tip.addColumn(ColumnPlacement.LEFT, new TipColumn_ItemSprite(targetStack));
+                }
+
                 this.tip.addRow(new TipRowBlockType(targetStack, new Thickness(1, 5, 5, 3)), RowPlacement.CENTRE);
                 int bId = this.mc.theWorld.getBlockId(this.target.blockX, this.target.blockY, this.target.blockZ);
-                String modName = ObjectOwnerModHelper.bId2ModName.get(bId);
-                if (modName == null)
-                    modName = "Minecraft";
 
-                this.tip.addRow(new TipRowTextSimple("\u00A7b\u00A7o" + modName, new Thickness(1, 3, 5, 5)), RowPlacement.CENTRE);
+                if (cfg.canShowModName) {
+                    String modName = ObjectOwnerModHelper.getModNameForBlock(bId);
+                    this.tip.addRow(new TipRowTextSimple("\u00A7b\u00A7o" + modName, new Thickness(1, 3, 5, 5)), RowPlacement.CENTRE);
+                }
 
                 ToolTipIntegration.getInstance().provideBlockInformation(this.tip, this.mc.theWorld, this.target.blockX, this.target.blockY, this.target.blockZ);
                 TileEntity tile = this.mc.theWorld.getBlockTileEntity(this.target.blockX, this.target.blockY, this.target.blockZ);
